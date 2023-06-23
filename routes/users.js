@@ -14,15 +14,15 @@ module.exports = function (db) {
     const sortParams = {}
     sortParams[sortBy] = sortMode == 'asc' ? 1 : -1
 
-    if (number && checkboxId === 'true') {
+    if (number && checkboxId === 'true' || checkboxId === 'on') {
       params['number'] = parseInt(number)
     }
 
-    if (string && checkboxString === 'true') {
+    if (string && checkboxString === 'true' || checkboxString === 'on') {
       params['string'] = new RegExp(string, 'i')
     }
 
-    if (integer && checkboxInteger === 'true') {
+    if (integer && checkboxInteger === 'true' || checkboxInteger === 'on') {
       params['integer'] = parseInt(integer)
     }
 
@@ -30,15 +30,15 @@ module.exports = function (db) {
       params['float'] = parseFloat(float)
     }
 
-    if (startDate && endDate && checkboxDate === 'true') {
+    if (startDate && endDate && checkboxDate === 'true' || checkboxDate === 'on') {
       params['date'] = { $gte: new Date(startDate), $lte: new Date(endDate) }
-    } else if (startDate && checkboxDate === 'true') {
+    } else if (startDate && checkboxDate === 'true' || checkboxDate === 'on') {
       params['date'] = { $gte: new Date(startDate) }
-    } else if (endDate && checkboxDate === 'true') {
+    } else if (endDate && checkboxDate === 'true' || checkboxDate === 'on') {
       params['date'] = { $lte: new Date(endDate) }
     }
 
-    if (boolean && checkboxBoolean === 'true') {
+    if (boolean && checkboxBoolean === 'true' || checkboxBoolean === 'on') {
       params['boolean'] = boolean === 'true'
     }
 

@@ -87,41 +87,21 @@
             </div>
             <div class="row mb-3" style="text-align: center;">
                 <center>
-                    <button type="submit" class="btn btn-primary" style="width: 10%;" id="searchButton">Search
-                        Filter</button>
+                    <button type="submit" class="btn btn-primary" style="width: 10%;">Search Filter</button>
                     <a type="button" class="btn btn-danger" href="/vanilla" style="width: 10%;">Reset Filter</a>
                 </center>
             </div>
         </form>
         <div class="row mb-3">
             <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th style="width: 6%;">No.
-                            <i class="fa-solid fa-sort" onClick="sortData('number', this)" isiData="number"></i>
-                        </th>
-                        <th style="width: 19%;">String
-                            <i class="fa-solid fa-sort" onClick="sortData('string', this)" isiData="string"></i>
-                        </th>
-                        <th style="width: 14%;">Integer
-                            <i class="fa-solid fa-sort" onClick="sortData('integer', this)" isiData="integer"></i>
-                        </th>
-                        <th style="width: 14%;">Float
-                            <i class="fa-solid fa-sort" onClick="sortData('float', this)" isiData="float"></i>
-                        </th>
-                        <th style="width: 19%;">Date
-                            <i class="fa-solid fa-sort" onClick="sortData('date', this)" isiData="date"></i>
-                        </th>
-                        <th style="width: 14%;">Boolean
-                            <i class="fa-solid fa-sort" onClick="sortData('boolean', this)" isiData="boolean"></i>
-                        </th>
-                        <th style="width: 14%;">Action</th>
-                    </tr>
+                <thead id="sorting">
                 </thead>
-                <tbody id="sortingData">
+                <tbody>
                 </tbody>
             </table>
-            <nav class="pagination" id="pagination1" aria-label="Page navigation example"></nav>
+            <nav class="pagination" id="pagination" aria-label="Page navigation example">
+            </nav>
+
             <!-- add form -->
             <form id="create-form" style="display: none;">
                 <br>
@@ -186,7 +166,7 @@
                         Data</button>
                 </center>
             </form>
-            <button style="margin-top: 15px;" id="showAdd" type="submit" onclick="toggleAddData()" class="btn btn-primary">Add Data</button>
+            <button id="showAdd" type="submit" onclick="toggleAddData()" class="btn btn-primary">Add Data</button>
 
             <!-- edit form -->
             <form id="edit-form" style="display: none;">
@@ -249,38 +229,18 @@
     </div>
     <script>
 
-        let sortBy = 'number';
-        let sortMode = 1;
+        let params = {
+            page: 1
+        };
 
-        function sortData(field, element) {
-            if (sortBy === field) {
-                sortMode *= -1;
-            } else {
-                sortBy = field;
-                sortMode = 1;
-            }
+        document.addEventListener('DOMContentLoaded', function () {
+            sort('number', 'asc');
 
-            const icons = document.querySelectorAll(".fa-sort");
-            icons.forEach((icon) => {
-                if (icon !== element) {
-                    icon.classList.remove("fa-arrow-down-short-wide", "fa-arrow-up-short-wide");
-                    icon.classList.add("fa-sort");
-                }
+            document.getElementById('form-search').addEventListener('submit', function (event) {
+                event.preventDefault();
+                searchData();
             });
-
-            if (sortMode === 1) {
-                element.classList.remove("fa-sort");
-                element.classList.remove("fa-arrow-up-short-wide");
-                element.classList.add("fa-arrow-down-short-wide");
-            } else {
-                element.classList.remove("fa-sort");
-                element.classList.remove("fa-arrow-down-short-wide");
-                element.classList.add("fa-arrow-up-short-wide");
-            }
-
-            loadData();
-        }
-
+        });
 
         document.getElementById('create-form').addEventListener("submit", function (event) {
             event.preventDefault();
@@ -313,12 +273,7 @@
             if (page > 1) {
                 searchParams.set("page", page)
             }
-            if (sortBy) {
-                searchParams.set("sortBy", sortBy);
-                searchParams.set("sortMode", sortMode === 1 ? "asc" : "desc");
-            }
             url += "?" + searchParams.toString()
-
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -339,86 +294,14 @@
                                 </tr>
                                 `;
                     });
-                    document.getElementById("sortingData").innerHTML = html
-
-                    const paginationContainer = document.getElementById("pagination1");
-                    if (!paginationContainer) {
-                        paginationContainer = document.createElement("ul");
-                        paginationContainer.id = "pagination1";
-                        paginationContainer.classList.add("pagination");
-                    }
-                    paginationContainer.innerHTML = "";
-
-                    // Tombol Previous
-                    const prevLi = document.createElement("li");
-                    prevLi.classList.add("page-item");
-
-                    const prevLink = document.createElement("a");
-                    prevLink.classList.add("page-link");
-                    prevLink.href = `javascript:void(0)`;
-                    prevLink.innerHTML = '<span aria-hidden="true">&laquo;</span>';
-
-                    prevLink.addEventListener("click", () => {
-                        if (page > 1) {
-                            loadData(page - 1);
-                        }
-                    });
-
-                    prevLi.appendChild(prevLink);
-                    paginationContainer.appendChild(prevLi);
-
-                    for (let i = 0; i < data.pages; i++) {
-                        const li = document.createElement("li");
-                        li.classList.add("page-item");
-
-                        const link = document.createElement("a");
-                        link.classList.add("page-link");
-                        link.href = `javascript:void(0)`;
-                        link.innerText = i + 1;
-
-                        if (i + 1 === page) {
-                            link.classList.add("active");
-                        }
-
-                        link.addEventListener("click", () => {
-                            loadData(i + 1);
-                        });
-
-                        li.appendChild(link);
-                        paginationContainer.appendChild(li);
-                    }
-
-                    // Tombol Next
-                    const nextLi = document.createElement("li");
-                    nextLi.classList.add("page-item");
-
-                    const nextLink = document.createElement("a");
-                    nextLink.classList.add("page-link");
-                    nextLink.href = `javascript:void(0)`;
-                    nextLink.innerHTML = '<span aria-hidden="true">&raquo;</span>';
-
-                    nextLink.addEventListener("click", () => {
-                        if (page < data.pages) {
-                            loadData(page + 1);
-                        }
-                    });
-
-                    nextLi.appendChild(nextLink);
-                    paginationContainer.appendChild(nextLi);
+                    document.querySelector('table tbody').innerHTML = html;
+                    params = { ...params, page: data.page, pages: data.pages };
+                    generatePagination(params);
                 })
-                .catch((err) => {
-                    console.log(err);
-                    alert("gagal mengambil data" + err);
+                .catch(error => {
+                    console.error(error);
                 });
-        }
-
-        const searchButton = document.getElementById("searchButton");
-
-        searchButton.addEventListener("click", function (event) {
-            event.preventDefault();
-            loadData(1);
-        });
-        loadData(1);
+        };
 
         const searchData = () => {
             const number = document.getElementById('idFilter').value;
@@ -436,6 +319,80 @@
             const checkboxBoolean = document.getElementById('checkboxBoolean').checked;
             params = { ...params, number, checkboxId: checkboxId, string, checkboxString: checkboxString, integer, checkboxInteger: checkboxInteger, float, checkboxFloat: checkboxFloat, startDate, endDate, checkboxDate: checkboxDate, boolean, checkboxBoolean: checkboxBoolean }
             loadData();
+        };
+
+        const changePage = page => {
+            params = { ...params, page }
+            loadData()
+        }
+
+        const sort = (sortBy, sortMode) => {
+            let sortingElement = document.getElementById('sorting');
+            let html = `<tr>
+                            <th style="width: 6%;">No.
+                                <i class="fa ${sortMode === 'asc' && sortBy === 'number' ? 'fa-arrow-down-short-wide' : sortMode === 'desc' && sortBy === 'number' ? 'fa-arrow-up-short-wide' : 'fa-sort'}" onClick="sort('number', '${sortMode === 'asc' ? 'desc' : 'asc'}')"></i>
+                            </th>
+                            <th style="width: 19%;">String
+                                <i class="fa ${sortMode === 'asc' && sortBy === 'string' ? 'fa-arrow-down-short-wide' : sortMode === 'desc' && sortBy === 'string' ? 'fa-arrow-up-short-wide' : 'fa-sort'}" onClick="sort('string', '${sortMode === 'asc' ? 'desc' : 'asc'}')"></i>
+                            </th>
+                            <th style="width: 14%;">Integer
+                                <i class="fa ${sortMode === 'asc' && sortBy === 'integer' ? 'fa-arrow-down-short-wide' : sortMode === 'desc' && sortBy === 'integer' ? 'fa-arrow-up-short-wide' : 'fa-sort'}" onClick="sort('integer', '${sortMode === 'asc' ? 'desc' : 'asc'}')"></i>
+                            </th>
+                            <th style="width: 14%;">Float
+                                <i class="fa ${sortMode === 'asc' && sortBy === 'float' ? 'fa-arrow-down-short-wide' : sortMode === 'desc' && sortBy === 'float' ? 'fa-arrow-up-short-wide' : 'fa-sort'}" onClick="sort('float', '${sortMode === 'asc' ? 'desc' : 'asc'}')"></i>
+                            </th>
+                            <th style="width: 19%;">Date
+                                <i class="fa ${sortMode === 'asc' && sortBy === 'date' ? 'fa-arrow-down-short-wide' : sortMode === 'desc' && sortBy === 'date' ? 'fa-arrow-up-short-wide' : 'fa-sort'}" onClick="sort('date', '${sortMode === 'asc' ? 'desc' : 'asc'}')"></i>
+                            </th>
+                            <th style="width: 14%;">Boolean
+                                <i class="fa ${sortMode === 'asc' && sortBy === 'boolean' ? 'fa-arrow-down-short-wide' : sortMode === 'desc' && sortBy === 'boolean' ? 'fa-arrow-up-short-wide' : 'fa-sort'}" onClick="sort('boolean', '${sortMode === 'asc' ? 'desc' : 'asc'}')"></i>
+                            </th>
+                            <th style="width: 14%;">Action</th>
+                        </tr>`;
+            sortingElement.innerHTML = html;
+
+            params = { ...params, sortBy, sortMode };
+            loadData();
+        };
+
+        const generatePagination = ({ page, pages }) => {
+            const paginationContainer = document.querySelector('#pagination');
+            const paginationList = document.createElement('ul');
+            paginationList.className = 'pagination';
+
+            let html = '';
+
+            if (page > 1) {
+                html += `
+                        <li class="page-item">
+                            <a class="page-link" href="javascript:void(0)" aria-label="Previous" onClick="changePage(${page - 1})">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        `;
+            }
+
+            for (let i = 1; i <= pages; i++) {
+                html += `
+                        <li class="page-item${page == i ? ' active' : ''}">
+                            <a class="page-link" href="javascript:void(0)" onClick="changePage(${i})">${i}</a>
+                        </li>
+                        `;
+            }
+
+            if (page < pages) {
+                html += `
+                        <li class="page-item">
+                            <a class="page-link" href="javascript:void(0)" aria-label="Next" onClick="changePage(${page + 1})">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        `;
+            }
+
+            paginationList.innerHTML = html;
+            paginationContainer.innerHTML = '';
+            paginationContainer.appendChild(paginationList);
         };
 
         const createData = (number, string, integer, float, date, boolean) => {
